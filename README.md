@@ -1,2 +1,2 @@
 # FYP_Dereverberation
-FYP
+Final Year Project on speech dereverberation 
