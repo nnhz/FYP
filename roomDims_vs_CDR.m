@@ -21,41 +21,22 @@ vol = [47.3 48.3 99.6 246 202 370 72.9];
 c = 340;                    % Sound velocity (m/s)
 fs = 16000;                 % Sampling frequency (samples/s)
 s = [1.5 3.2 1.6];          % Source position [x y z] (m)
-r = [2.3 2.1 1.6];          % Receiver position [x y z] (m)
+r1 = [2.3 2.1 1.6];          % Receiver position [x y z] (m)
+r2 = [2.3 2.5 1.6];          % Receiver position [x y z] (m)
 n = 4096;                   % Number of samples
 
+Te = 0.05;
 n_rooms = size(dimensions, 1);  % Number of rooms
-h = zeros(n_rooms, n);          % RIRs
-
-
-%% Get RIRs for all rooms
-% https://www.audiolabs-erlangen.de/fau/professor/habets/software/rir-generator
-
-n_microphones = 2;                  % Number of microphones in the ULA
-spacing = 0.02;                     % Space between two adjcent microphones
-h = zeros(n_microphones, n);        % RIRs
-
-for i = 1:n_rooms
-    h(i,:) = rir_generator(c, fs, r, s, L, T_60(i), n);
-end
-
-
-%% Load clean speech
+SNR_avg = zeros(1, n_rooms);
+%% Load clean speech signal
 [x, fs_in] = audioread('resources/IEEE_sentences/ieee01f06.wav');
 
 
-%% Create noisy speech
-y = zeros(n_rooms, length(x));
-
-for i = 1:n_rooms
-   y(i,:) = filter(h(i,:), 1, x); 
-end
-
-%% Obtain CDR plot and calculate average CDR for
-
+%% Obtain average CDR for the same speech signal in different rooms
 % Using demo_cdr_dereverb.m by Andreas Schwarz (schwarz@lnt.de)
 % Adapted for literature review experiment
 % Estimator prop 3 (since it is DOA-independent)
+
 
 % filterbank initialization
 cfg.K = 512; % FFT size
@@ -80,14 +61,26 @@ cfg.estimator = @estimate_cdr_nodoa;              % DOA-independent estimator (C
 
 for i = 1:n_rooms
     
-    % preparation
-    noisy_sig = resample(y(i,:), cfg.fs, fs_in);
+    % Generate RIRs, assuming 2 mirophones
+    % https://www.audiolabs-erlangen.de/fau/professor/habets/software/rir-generator
 
+    h1 = rir_generator(c, fs, r1, s, dimensions(i,:), T_60(i), n);
+    h2 = rir_generator(c, fs, r2, s, dimensions(i,:), T_60(i), n);
+    h1_late = h1(0.05*fs : length(h1));
+    h2_late = h2(0.05*fs : length(h2));
+    
+    % Create 2-channel noisy speech
+    y1 = filter(h1_late, 1, x);
+    y2 = filter(h2_late, 2, x);
+    y_total = [y1 y2];
+    
+    y = resample(y_total, cfg.fs, fs_in);
+    
     % signal processing
     fprintf('Performing signal enhancement... ');tic;
 
     % analysis filterbank
-    X=DFTAnaRealEntireSignal(noisy_sig,cfg.K,cfg.N,p);
+    X=DFTAnaRealEntireSignal(y,cfg.K,cfg.N,p);
 
     % estimate PSD and coherence
     Pxx = estimate_psd(X,cfg.nr.lambda);
@@ -101,6 +94,7 @@ for i = 1:n_rooms
     % apply CDR estimator (=SNR)
     SNR = cfg.estimator(Cxx, Cnn);
     SNR = max(real(SNR),0);
+    SNR_avg(i) = mean(SNR, 'all'); % average over time and frequency indices 
 
     % TODO: STORE DIFFEERNT SNRS 
     
@@ -117,27 +111,28 @@ for i = 1:n_rooms
     % synthesis filterbank
     z = DFTSynRealEntireSignal(Processed,cfg.K,cfg.N,p);
     fprintf('done (%.2fs).\n', toc);
-
     
-end 
+    %audiowrite('resources/out.wav',z,cfg.fs);
 
-%audiowrite('wav/out.wav',z,cfg.fs);
+    % Plot results
+    figure;
+    imagesc(10*log10(SNR))
+    set(gca,'YDir','normal')
+    caxis([-15 15])
+    colorbar
+    title(join(['Estimated CDR (=SNR) [dB] Room ', sprintf('%02d', i)]))
+    xlabel('frame index')
+    ylabel('subband index')
+end
 
-%% Plot results 
 
-t_h_vals = (0: n-1)/fs;
-t_x_vals = (0: length(x)-1)/fs_in;
+%% Average CDR vs. Room dimensions
 
-figure(1)
-imagesc(10*log10(SNR))
-set(gca,'YDir','normal')
-caxis([-15 15])
-colorbar
-title('Estimated CDR (=SNR) [dB]')
-xlabel('frame index')
-ylabel('subband index')
-
-% average over time and frequency indices 
-
+figure;
+scatter(vol, 10*log10(SNR_avg));
+title('Average CDR vs. Volume of room');
+xlabel('Volume of room');
+ylabel('Average CDR');
+   
 
 
