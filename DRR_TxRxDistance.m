@@ -18,7 +18,6 @@ c = 342;                    % Speed of sound (m/s)
 fs = 16000;                 % Sampling frequency (Hz, samples/s)
 n = 4096*3;                 % Number of samples
 T_60 = 0.45;                % Reverberation time (s)
-d_mic = 0.06;               % Mic spacing (m)
 
 % Number of iterations in the x- and y-direction for 2 mic positions
 x_itr = 6;
