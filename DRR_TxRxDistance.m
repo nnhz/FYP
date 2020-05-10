@@ -3,7 +3,7 @@
 % Average DRR vs. Source-Receiver Distance
 % Fixed config for room, source
 % Vary the receiver positions (using 2 mics)
-% Average CDR obtained across all frequency and time indices
+
 
 close all;
 
