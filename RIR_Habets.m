@@ -27,9 +27,9 @@ y = filter(h, 1, x);        % Output with the same length as input
 
 t_x_vals = (0:length(x)-1)/Fs;
 t_h_vals = (0:n-1)/fs;
-h_db = mag2db(h);
-h_60db = max(h_db) - 60;
 
+% use edc.m to plot the energy decay curve
+[h_edc] = edc(h);
 
 %% Visualisation
 
@@ -48,12 +48,12 @@ xlabel('Time/s', 'Fontsize', 20);
 ylabel('Amplitude', 'Fontsize', 20);
 
 figure;
-semilogy(t_h_vals, h_db);
-yline(h_60db, '--', '-60dB', 'Color', 'r');
-set(gca,'FontSize', 12);
-title("Room Impulse Response", 'Fontsize', 20);
+plot(t_h_vals, h_edc);
+set(gca,'FontSize', 14);
+title("Energy Decay Curve of the Room Impulse Response", 'Fontsize', 18);
 xlabel('Time/s', 'Fontsize', 20);
-ylabel('Magnitude (dB)', 'Fontsize', 20);
+ylabel('EDC (dB)', 'Fontsize', 20);
+grid on;
 
 figure;
 plot(t_x_vals, y);
