@@ -33,9 +33,15 @@ DRR_all = zeros(x_itr * y_itr, 2);
 %% Load clean speech signal
 [x, fs_in] = audioread('resources/IEEE_sentences/ieee01f06.wav');
 
+% % Make white Gaussian noise as the input
+% % 10s long
+% var = 0.8;
+% wgn = sqrt(var) * randn(fs*10,1);
+% x = wgn;
 
 %% Obtain average DRR
 % Using estDRRFromRIR from the ACE Challenge Corpus
+% DRR can be estimated using 1 mic, but for comparison with CDR, 2 mics are used (and take the average)
 
 for i = 1:y_itr
     for j = 1:x_itr
@@ -56,7 +62,6 @@ for i = 1:y_itr
         
         DRR_all(j+6*(i-1), :) = estDRRFromRIR([h1;h2]', fs); % h is a vector of 2 mics?
 
-
     end
 
 end
@@ -67,10 +72,10 @@ DRR_avg = mean(DRR_all, 2);
 
 figure;
 scatter(distances, DRR_avg);
-set(gca,'FontSize', 12);
+set(gca,'FontSize', 13);
 title('Average DRR vs. Source-Receiver Distance', 'Fontsize', 18);
 xlabel('Distance/m', 'Fontsize', 18);
-ylabel('Average CDR', 'Fontsize', 18);
+ylabel('Average DRR/dB', 'Fontsize', 18);
    
 figure;
 plot3(s(:,1), s(:,2), s(:,3), 'k*', r1_all(:,1), r1_all(:,2), r1_all(:,3), 'b^', r2_all(:,1), r2_all(:,2), r2_all(:,3), 'r>');
