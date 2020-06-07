@@ -4,6 +4,17 @@
 % Use both algorithms to dereverb the siganl
 % Evaluate both algos using the NSRR, listening test
 
+% Reference:
+% [1] Andreas Schwarz, Walter Kellermann, "Coherent-to-Diffuse Power Ratio
+% Estimation for Dereverberation", IEEE/ACM Trans. on Audio, Speech and
+% Lang. Proc., 2015 (under review); preprint available: arXiv:1502.03784
+% PDF: http://arxiv.org/pdf/1502.03784
+% [2] Nakatani T, Yoshioka T, Kinoshita K, et al. Speech Dereverberation 
+% Based on Variance-Normalized Delayed Linear Prediction[J]. IEEE 
+% Transactions on Audio Speech & Language Processing, 2010, 18(7):1717-1731.
+% (Code by Teng Xiang at 2017-10-14)
+
+
 close all;
 
 %% Create reverberant signal
@@ -16,8 +27,8 @@ addpath(genpath('resources/WPE_lib'));
 d_mic = 0.08;               % Mic spacing (m)
 L = [6.61 5.11 2.95];       % Room dimensions [x y z] (m)
 s = [1.1 2.5 1.5];          % Source position [x y z] (m) T_60 = 0.332;
-r1 = [3 2.4 1.5];          % Receiver position [x y z] (m)
-r2 = [3 2.4+d_mic 1.5];    % Receiver position [x y z] (m)
+r1 = [3 2.4 1.5];           % Receiver position [x y z] (m)
+r2 = [3 2.4+d_mic 1.5];     % Receiver position [x y z] (m)
         
 c = 342;                    % Speed of sound (m/s)
 fs = 16000;                 % Sampling frequency (Hz, samples/s)
