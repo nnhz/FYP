@@ -1,32 +1,31 @@
 close all;
 
 c = 340;
-d_mic = 0.06;
-f = 5000;
+d_mic = 0.08;
+f = 3000;
 %theta = ;
 %TDOA = d_mic * sin(theta)/c;
 TDOA = 1/(5*f);
 
-Css = exp(1j * 2 * pi * f * TDOA);  
-Cnn = sinc(2 * f * d_mic/c); 
-
+Css = exp(1j * 2 * pi * f * TDOA);      % Gamma_s
+Cnn = sinc(2 * f * d_mic/c);            % Gamma_n
 CDR_log = linspace(-20,20, 201);
-% theoretical CDR = (Cnn - Cxx) ./ (Cxx - Css)
 CDR = 10 .^ (CDR_log/10);
-Cxx = (Cnn + Css * CDR) ./ (CDR +1);
+% theoretical CDR = (Cnn - Cxx) ./ (Cxx - Css)
+Cxx = (Cnn + Css * CDR) ./ (CDR +1);    % Gamma_x
 
 
-Jeub = max(0, (Cnn - real(exp(-1i*angle(Css)).*Cxx)) ./ (real(exp(-1i*angle(Css)).*Cxx) - 1));
+Jeub = max(0, (Cnn - real(exp(-1i * angle(Css)) .* Cxx)) ./ (real(exp(-1i * angle(Css)) .* Cxx) - 1));
 
 Thiergart1 = max(0, real((Cnn - Cxx) ./ (Cxx - Css)));
 
-Thiergart2 = max(0, real((Cnn - Cxx) ./ (Cxx - exp(1i*angle(Cxx)))));
+Thiergart2 = max(0, real((Cnn - Cxx) ./ (Cxx - exp(1i * angle(Cxx)))));
 
-Schwarz1 = max(0, real(exp(-1j*angle(Css)).*Cnn - (exp(-1i*angle(Css)).*Cxx))./(real(exp(-1i*angle(Css)).*Cxx) - 1));
+Schwarz1 = max(0, real(exp(-1i * angle(Css)) .* Cnn - (exp(-1i * angle(Css)) .* Cxx)) ./ (real(exp(-1i * angle(Css)) .* Cxx) - 1));
 
-Schwarz2 = max(0, 1./(-abs(Cnn-exp(1j*angle(Css)))./(Cnn.*cos(angle(Css))-1)).*abs((exp(-1j*angle(Css)).*Cnn - (exp(-1i*angle(Css)).*Cxx))./(real(exp(-1i*angle(Css)).*Cxx) - 1)));
+Schwarz2 = max(0, 1 ./ (-abs(Cnn-exp(1i * angle(Css))) ./ (Cnn .* cos(angle(Css)) - 1)) .* abs((exp(-1i * angle(Css)) .* Cnn - (exp(-1i * angle(Css)) .* Cxx)) ./ (real(exp(-1i * angle(Css)) .* Cxx) - 1)));
 
-Schwarz3 = max(0, (-(abs(Cxx).^2 + Cnn.^2.*real(Cxx).^2 - Cnn.^2.*abs(Cxx).^2 - 2.*Cnn.*real(Cxx) + Cnn.^2).^(1/2) - abs(Cxx).^2 + Cnn.*real(Cxx))./(abs(Cxx).^2-1));
+Schwarz3 = max(0, (-(abs(Cxx).^2 + Cnn.^2 .* real(Cxx).^2 - Cnn.^2 .* abs(Cxx).^2 - 2 .* Cnn .* real(Cxx) + Cnn.^2).^(1/2) - abs(Cxx).^2 + Cnn.*real(Cxx))./(abs(Cxx).^2-1));
 
 Schwarz4 = imag(Cxx)./(imag(Css) - imag(Cxx));
 Schwarz4(imag(Css)./imag(Cxx)<=1) = Inf;
@@ -51,13 +50,17 @@ plot(CDR_log, Schwarz2_log);
 plot(CDR_log, Schwarz3_log);
 plot(CDR_log, Schwarz4_log);
 hold off;
+xlim([-20 20]);
+ylim([-20 20]);
 xlabel('Theoretical CDR/dB');
 ylabel('Estimated CDR/dB');
-legend({'Jeub', 'Thiergart1', 'Thiergart2', 'Schwarz1', 'Schwarz2', 'Schwarz3', 'Schwarz4'});
-title(join(['f = ', int2str(f), ' Hz']));
-set(findall(gcf,'type','axes'),'fontsize',16);
-set(findall(gcf,'type','text'),'fontSize',22);
-% fig = gcf;
-% fig.PaperPositionMode = 'auto';
-% savefig(fig, 'CDR-vs-TxRxDistance-positions.fig');
-% saveas(fig, 'CDR-vs-TxRxDistance-positions.png');
+grid on;
+legend({'Jeub', 'Thiergart1', 'Thiergart2', 'Schwarz1', 'Schwarz2', 'Schwarz3', 'Schwarz4'}, 'Location', 'best');
+title('CDR Estimate vs. Theoretical Value');
+set(findall(gcf,'Type','Axes'),'FontSize',16);
+set(findall(gcf,'Type','Text'),'FontSize',22);
+set(findall(gcf,'Type','Line'),'LineWidth', 2);
+fig = gcf;
+fig.PaperPositionMode = 'auto';
+% savefig(fig, join(['Figures/CDR_Evaluation/', int2str(f), 'Hz.fig']));
+% saveas(fig, join(['Figures/CDR_Evaluation/', int2str(f), 'Hz.png']));
