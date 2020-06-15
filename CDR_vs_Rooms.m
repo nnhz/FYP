@@ -1,7 +1,18 @@
+%% Description
+% CDR_vs_Rooms.m
+% To investigate the relationship between CDR and T60 using real RIRs taken
+% from the ACE Challenge Corpus
+% CDR estimation code taken from [1]
+
+% Reference:
+% [1] Andreas Schwarz, Walter Kellermann, "Coherent-to-Diffuse Power Ratio
+% Estimation for Dereverberation", IEEE/ACM Trans. on Audio, Speech and
+% Lang. Proc., 2015 (under review); preprint available: arXiv:1502.03784
+% PDF: http://arxiv.org/pdf/1502.03784
+
 close all;
 
 addpath(genpath('resources/Schwarz_lib'));
-
 
 %% Initial parameters and configuration
 
@@ -49,43 +60,38 @@ for i=1:n_rooms
     distances(i) = norm( s_positions(i,:) - (r1_positions(i,:) + r2_positions(i,:))/2 );
 end
 
-SNR_avg = zeros(1, n_rooms);
-c = 340;                    
+CDR_avg = zeros(1, n_rooms);
+c = 342;                    
 fs = 16000;                          
 n = 8192; 
 
+% Filterbank initialization
+K = 512;                    % FFT size
+N = 128;                    % Frame shift
+%Lp = 1024;                  % Prototype filter length
+load('resources/Schwarz_lib/filterbank/prototype_K512_N128_Lp1024.mat');
+
+% Other parameters for CDR estimation
+lambda = 0.68;              % Forgetting/smoothing factor for PSD estimation
+mu = 1.3;                   % Noise oversubtraction/overestimation factor
+G_floor = 0.1;              % Minimum gain
+
+% Alpha and beta used for spectral subtraction
+%ss_alpha = 1; ss_beta = 1;     % Power subtraction 
+ss_alpha = 2; ss_beta = 0.5;    % Magnitude subtraction
+%ss_alpha = 2; ss_beta = 1;     % Wiener filter
+
+% Chosen estimator
+estimator = @estimate_cdr_nodoa;   % DOA-independent estimator (CDRprop3)
+
 
 %% Load clean speech signal
-[x, fs_in] = audioread('resources/IEEE_sentences/ieee01f06.wav');
-
+[x, fs_in] = audioread('resources/clearn_speech/ieee01f05.wav');
 
 %% Obtain average CDR for the same speech signal in different rooms
 % Using demo_cdr_dereverb.m by Andreas Schwarz (schwarz@lnt.de)
 % Adapted for literature review experiment
 % Estimator prop 3 (since it is DOA-independent) 
-
-
-
-% filterbank initialization
-cfg.K = 512; % FFT size
-cfg.N = 128; % frame shift
-cfg.Lp = 1024; % prototype filter length
-load('resources/Schwarz_lib/filterbank/prototype_K512_N128_Lp1024.mat');
-
-% algorithm and scenario configuration
-cfg.fs = 16000;      % sampling rate [Hz]
-cfg.c = 342;         % speed of sound [m/s]
-cfg.d_mic = 0.08;   % mic spacing [m]
-
-cfg.nr.lambda = 0.68; % smoothing factor for PSD estimation
-cfg.nr.mu = 1.3;     % noise overestimation factor
-cfg.nr.floor = 0.1;  % minimum gain
-%cfg.nr.alpha = 1; cfg.nr.beta = 1; % power subtraction
-cfg.nr.alpha = 2; cfg.nr.beta = 0.5; % magnitude subtraction
-%cfg.nr.alpha = 2; cfg.nr.beta = 1; % Wiener filter
-
-cfg.estimator = @estimate_cdr_nodoa;              % DOA-independent estimator (CDRprop3)
-
 
 for i = 1:n_rooms
     
@@ -99,31 +105,27 @@ for i = 1:n_rooms
     y1 = filter(h1, 1, x);
     y2 = filter(h2, 1, x);
     y_total = [y1 y2];
-    
     y = resample(y_total, cfg.fs, fs_in);
     
-    % signal processing
-    fprintf('Performing signal enhancement... ');tic;
-
     % analysis filterbank
-    X=DFTAnaRealEntireSignal(y,cfg.K,cfg.N,p);
+    X=DFTAnaRealEntireSignal(y, K, N, p);
 
     % estimate PSD and coherence
-    Pxx = estimate_psd(X,cfg.nr.lambda);
-    Cxx = estimate_cpsd(X(:,:,1),X(:,:,2),cfg.nr.lambda)./sqrt(Pxx(:,:,1).*Pxx(:,:,2));
+    Pxx = estimate_psd(X, lambda);
+    Cxx = estimate_cpsd(X(:,:,1), X(:,:,2), lambda)./ sqrt(Pxx(:,:,1).* Pxx(:,:,2));
 
-    frequency = linspace(0,cfg.fs/2,cfg.K/2+1)'; % frequency axis
+    frequency = linspace(0, fs/2, K/2+1)'; % frequency axis
 
     % define coherence models
-    Cnn = sinc(2 * frequency * cfg.d_mic/cfg.c); % diffuse noise coherence; not required for estimate_cdr_nodiffuse
+    Cnn = sinc(2 * frequency * d_mic/c); % diffuse noise coherence; not required for estimate_cdr_nodiffuse
 
     % apply CDR estimator (=SNR)
-    SNR = cfg.estimator(Cxx, Cnn);
-    SNR = max(real(SNR),0);
-    SNR_avg(i) = mean(SNR, 'all'); % average over time and frequency indices 
-    
-    weights = spectral_subtraction(SNR,cfg.nr.alpha,cfg.nr.beta,cfg.nr.mu);
-    weights = max(weights,cfg.nr.floor);
+    CDR = estimator(Cxx, Cnn);
+    CDR = max(real(CDR), 0);
+    CDR_avg(i) = mean(CDR, 'all');  % averaged over time and frequency indices 
+
+    weights = spectral_subtraction(CDR,ss_alpha,ss_beta,mu);
+    weights = max(weights, G_floor);
     weights = min(weights,1);
 
     % postfilter input is computed from averaged PSDs of both microphones
@@ -133,27 +135,24 @@ for i = 1:n_rooms
     Processed = weights .* Postfilter_input;
 
     % synthesis filterbank
-    z = DFTSynRealEntireSignal(Processed,cfg.K,cfg.N,p);
-    fprintf('done (%.2fs).\n', toc);
+    z_cdr = DFTSynRealEntireSignal(Processed, K, N,p);
     
-    %audiowrite('resources/out.wav',z,cfg.fs);
-
-    % Plot results
-%     figure;
-%     imagesc(10*log10(SNR))
-%     set(gca,'YDir','normal')
-%     caxis([-15 15])
-%     colorbar
-%     title(join(['Estimated CDR (=SNR) [dB] Room ', sprintf('%02d', i)]))
-%     xlabel('frame index')
-%     ylabel('subband index')
 end
 
-%% Average CDR vs. Room dimensions
+%% Average CDR vs. T60 (with real RIRs)
 
-figure;
-scatter(T_60, 10*log10(SNR_avg));
+figure('position',[0 0 600 450]);
+scatter(T_60, 10*log10(CDR_avg), 80, 'filled');
 title('Average CDR vs. T60');
-xlabel('T60');
-ylabel('Average CDR');
-   
+xlabel('T60/s');
+ylabel('Average CDR/dB');
+grid on;
+set(findall(gcf,'type','axes'),'fontsize',16);
+set(findall(gcf,'type','text'),'fontSize',22);
+fig = gcf;
+fig.PaperPositionMode = 'auto';
+% savefig(fig, 'CDR-vs-T60.fig');
+% saveas(fig, 'CDR-vs-T60.png');
+
+
+
