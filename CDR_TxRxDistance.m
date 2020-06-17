@@ -116,7 +116,7 @@ end
 %% Average CDR vs. Source-Receiver Distance
    
 figure('position',[0 0 600 450]);
-scatter(distances, 10*log10(SNR_avg), 80, 'filled');
+scatter(distances, 10*log10(CDR_avg), 80, 'filled');
 title('Average CDR vs. Source-Receiver Distance');
 xlabel('Distance/m');
 ylabel('Average CDR/dB');
