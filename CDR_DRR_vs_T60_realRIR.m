@@ -6,11 +6,11 @@
 % [1] Andreas Schwarz, Walter Kellermann, "Coherent-to-Diffuse Power Ratio Estimation for Dereverberation", 
 % IEEE/ACM Trans. on Audio, Speech and Lang. Proc., 2015 (under review); preprint available: arXiv:1502.03784
 % PDF: http://arxiv.org/pdf/1502.03784
-% [2] Emanuël Habets, https://www.audiolabs-erlangen.de/fau/professor/habets/software/rir-generator
+% [2] EmanuÃ«l Habets, https://www.audiolabs-erlangen.de/fau/professor/habets/software/rir-generator
 % [3] P. A. Naylor and N. D. Gaubitch, Eds., Speech Dereverberation. Springer, 2010.
-% [4] J. Eaton, N. D. Gaubitch, A. H. Moore, and P. A. Naylor, ?The ACE challenge - corpus description 
-% and performance evaluation?, in 2015 IEEE Workshop on Applications of Signal Processing to Audio and Acoustics 
-% (WASPAA), pp. 1?5, Oct 2015
+% [4] J. Eaton, N. D. Gaubitch, A. H. Moore, and P. A. Naylor, "The ACE challenge - Corpus Description 
+% and Performance Evaluation", in 2015 IEEE Workshop on Applications of Signal Processing to Audio and Acoustics 
+% (WASPAA), pp. 1-5, Oct 2015
 
 % Dependencies:
 % 1. RIR generator
