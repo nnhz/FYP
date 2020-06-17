@@ -6,7 +6,7 @@ This repository contains all the code scripts used for the project, including
 * CDR investigations (adapted from the demo code by Schwarz et al.)
 * CDR applied to dereverberation and evaluation
 
-The scripts uploaded are only for academic purposes and any external dependencies or helper functions used are not included to avoid plagiarism. References are included in individual scripts as well as the project final report.
+The scripts uploaded are only for academic purposes. Any external dependencies or helper functions used are stored in the 'resources' folder; they are not uploaded (to avoid plagiarism) but can be found via the references. References are included in individual scripts as well as the project final report.
 
 
 ## References
