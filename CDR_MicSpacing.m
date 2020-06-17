@@ -1,9 +1,9 @@
 %% Description
 % CDR_MicSpacing.m
-% Average CDR vs. Microphone spacing (2 mics)
+% Average CDR vs. Microphone Spacing (2 mics)
 % Fixed config for room, source, source-receiver distance along x-axis
-% Vary the receiver separation (using 2 mics)
 % Average CDR obtained across all frequency and time indices
+% Two ways of changing the microphone spacing (Configuration 1 and 2)
 
 % References:
 % [1] Andreas Schwarz, Walter Kellermann, "Coherent-to-Diffuse Power Ratio Estimation for Dereverberation", 
