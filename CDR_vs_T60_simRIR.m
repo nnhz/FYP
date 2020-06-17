@@ -24,9 +24,10 @@ addpath(genpath('resources/Schwarz_lib'));
 %% Initial parameters and configuration
 d_mic = 0.06;
 L = [6.61 5.11 2.95];                                       % Room dimensions [x y z] (m)
-s = [3 2.5 1.5];                                            % Source position [x y z] (m) 
-r1 = [7 3.48 1.5];                                          % Mic 1 position [x y z] (m)
-r2 = [7 3.48+d_mic 1.5];                                    % Mic 2 position [x y z] (m)
+s = [1.1 2.5 1.5];                                          % Source position [x y z] (m)
+r1 = [3 2.5 1.5];                                           % Mic 1 position [x y z] (m)
+r2 = [3 2.5+d_mic 1.5];                                     % Mic 2 position [x y z] (m)
+                             
 vol = prod(L);                                              % Volume of the room (m^3)
 c = 342;                                                    % Speed of sound (m/s)
 fs = 16000;                                                 % Sampling frequency (Hz, samples/s)
@@ -34,9 +35,9 @@ n = 12288;                                                  % Number of samples
 
 % Another configuration
 % L = [10 7 3];       
-% s = [5 3.5 1.5];          
-% r1 = [1.1 2.5 1.5];
-% r2 = [1.1 2.5+d_mic 1.5];
+% s = [3 2.5 1.5];                                             
+% r1 = [7 3.48 1.5];                                          
+% r2 = [7 3.48+d_mic 1.5];       
 
 % Initialize variables for visualisation of results
 DRR_all = zeros(n_rooms, 2);
