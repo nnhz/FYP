@@ -4,6 +4,11 @@
 
 % References:
 % [1] Emanuël Habets, https://www.audiolabs-erlangen.de/fau/professor/habets/software/rir-generator
+% [2] P. A. Naylor and N. D. Gaubitch, Eds., Speech Dereverberation. Springer, 2010.
+
+% Dependencies:
+% 1. RIR generator
+% 2. edc
 
 close all;
 addpath(genpath('resources/helper_scripts'));

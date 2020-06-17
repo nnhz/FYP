@@ -5,6 +5,11 @@
 
 % References:
 % [1] Emmanuel Vincent, http://homepages.loria.fr/evincent/software/Roomsimove.zip
+% [2] P. A. Naylor and N. D. Gaubitch, Eds., Speech Dereverberation. Springer, 2010.
+
+% Dependencies:
+% 1. RIR generator
+% 2. edc
 
 close all;
 addpath(genpath('resources/helper_scripts'));
